@@ -1,11 +1,11 @@
 #网站相关的配置
 website:
-  #网络的首页，必填
-  url: https://r.koif.uk/
+  #网站的首页，必填
+  url: 
   #获取文件目录的api，必填
-  list_api: https://r.koif.uk/api/fs/list
+  list_api: 
   #下载的api，必填
-  download_api: https://r.koif.uk/d
+  download_api: 
   #目录的密码，可以是一个str或者dict
   #dict的key正则表达式，value为密码
   #可以设置一个default
@@ -15,25 +15,21 @@ website:
   #       /x1/x2/x3/x4.*  密码：x2
   #  路径 /x1/x2/x3/x4/5 的获取密码为：x2
   password:
-      default: 一百八一杯
+      default: 
 #爬虫相关的配置
 spider:
   #文件的存储路径，在不设置的情况下默认为./download
-  save_path: /mnt/HC_Volume_100988848/r_koif_uk/
+  save_path: 
   #爬虫运行的域名，必填
   allowed_domains:
-    - koif.uk
   #爬虫下载的文件，后缀名 如：mp3，mp4
   #可以使用*表示全部文件
   #默认全部下载
   allowed_download_type:
-#    - *
-    - m4a
   #爬虫拒绝下载的文件  如：mp3，mp4
   dont_allowed_download_type:
   #爬虫允许爬取的路径，为list，参数可以是一个正则
   allowed_path:
-    - /.*/.*/M4A.*
   #爬虫禁止爬取的路径，为list，参数可以是一个正则
   dont_allowed_path:
   #未配置的路径爬虫是否进行爬取
@@ -41,7 +37,7 @@ spider:
   #并行的线程数目
   thread_number: 16
   #代理设置，如果不设置代理，那么返回Nane，你可以在Util中重写get_proxy()方法
-  proxy: http://user-sub.fishaudio-type-dc:123456@proxy.haiwai-ip.com:1465
+  proxy: 
   #下载延迟
   download_delay_dir:
   download_delay_download:
@@ -62,18 +58,6 @@ spider:
   #       /x1/x2/x3/x4.* 深度：4
   #  路径 /x1/x2/x3/x4/5 的获取深度为 4
   dir_depth:
-#    /asmr/中文音声.*: 3
-#    /asmr/中文音声.*: 3
-#    /asmr/亚太/Seldea: 3
-#    /asmr/未分类/部分收集.*: 4
-#    /asmr.*: 2
-#    /asmr2.*: 2
-#    /asmr2-new(整理中暂不开放下载).*: 2
-#    /asmr3.*: 2
-#    /asmr4/ASMR录播/1、合集.*: 4
-#    /asmr5/DLSite原档.*: 3
-#    /asmr6.*: 2
-#    /.*/.*/M4A: 3
     default: 10
 #以下参数不需要手动编写，值为程序录入
 download:
@@ -88,10 +72,10 @@ download:
 #数据库相关的配置
 mysql:
   #数据库地址，必填
-  host: 127.0.0.1
+  host: 
   #用户名，必填
-  user: root
+  user: 
   #密码，必填
-  password: ZYS
+  password: 
   #运行端口，必填
-  port: 3306
+  port: 
