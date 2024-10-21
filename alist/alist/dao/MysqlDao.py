@@ -9,24 +9,18 @@ class MysqlDao:
     def __init__(self):
         config: dict = settings.config
         config_mysql: dict = config.get("mysql")
-        connect = pymysql.connect(host=config_mysql.get("host")
+        self.connect = pymysql.connect(host=config_mysql.get("host")
                                   , user=config_mysql.get("user")
                                   , passwd=config_mysql.get("password")
                                   , port=config_mysql.get("port")
                                   , charset='utf8mb4')
-        cursor = connect.cursor()
-        cursor.execute(f"CREATE DATABASE IF NOT EXISTS {config.get('mysql').get('database')}")
-        connect.commit()
-        cursor.close()
-        connect.close()
-
-        self.connect = pymysql.connect(host=config_mysql.get("host")
-                                       , user=config_mysql.get("user")
-                                       , passwd=config_mysql.get("password")
-                                       , port=config_mysql.get("port")
-                                       , db=config_mysql.get("database")
-                                       , charset='utf8mb4')
         self.cursor = self.connect.cursor()
+        self.cursor.execute(f"CREATE DATABASE IF NOT EXISTS {config.get('mysql').get('database')}")
+        self.cursor.execute(f"use {config.get('mysql').get('database')}")
+        self.connect.commit()
+        self.root_table = "root_table"
+        self._create_root_table(self.root_table)
+
         path = config.get("spider").get("start_path")
         path_code = hashlib.md5(path.encode("utf-8")).hexdigest()
         self.dir_table = f"dir_table_{path_code}"
@@ -44,10 +38,25 @@ class MysqlDao:
         self.cursor.execute(sql)
         return len(self.cursor.fetchall()) == 1
 
+    def _create_root_table(self, table_name):
+        if self.table_cheack(table_name):
+            return
+        sql = f"""
+            CREATE TABLE `{table_name}`  (
+                `id` int NOT NULL AUTO_INCREMENT,
+                `path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+                `table_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+                `status` tinyint NULL DEFAULT 0,
+                PRIMARY KEY (`id`) USING BTREE
+            ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+        """
+        self.cursor.execute(sql)
+        self.connect.commit()
+
     def _create_file_table(self, table_name):
         if self.table_cheack(table_name):
             return
-        self.cursor.execute(f"""
+        sql = f"""
             CREATE TABLE `{table_name}`  (
                 `id` int NOT NULL AUTO_INCREMENT,
                 `file_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
@@ -60,14 +69,15 @@ class MysqlDao:
                 `remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
                 PRIMARY KEY (`id`) USING BTREE
             ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
-        """)
+        """
+        self.cursor.execute(sql)
         self.connect.commit()
 
     # 创建目录表
     def _create_dir_table(self, table_name):
         if self.table_cheack(table_name):
             return
-        self.cursor.execute(f"""
+        sql = f"""
             CREATE TABLE `{table_name}`  (
                 `id` int NOT NULL AUTO_INCREMENT,
                 `path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
@@ -81,8 +91,8 @@ class MysqlDao:
                 `remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
                 PRIMARY KEY (`id`) USING BTREE
             ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
-        """)
-
+        """
+        self.cursor.execute(sql)
         self.connect.commit()
 
     def select_dir_table(self, table_name):
@@ -167,6 +177,7 @@ class MysqlDao:
 
         self._create_file_table(table_name)
 
+    #更新表格状态，表示所有的表格是否下载完成
     def update_table_status(self, id):
         sql = f"""
             update 
@@ -179,7 +190,7 @@ class MysqlDao:
         self.cursor.execute(sql)
         self.connect.commit()
 
-    # 跟新表格数据
+    # 更新表格数据
     def insert_file_data(self, item: AlistItem, table_name):
         self._create_file_table(table_name)
         file_name = item["file_name"]
@@ -198,6 +209,7 @@ class MysqlDao:
         self.cursor.execute(sql)
         self.connect.commit()
 
+    #查询文件的信息
     def select_file(self, file_name, table_name):
         sql = f"""
             select 
@@ -211,6 +223,7 @@ class MysqlDao:
         result = self.cursor.fetchall()
         return result
 
+    #更新文件的状态表示文件是否下载完成
     def update_file_status(self, file_name, table_name):
         if len(self.select_file(file_name, table_name)) == 0:
             return
