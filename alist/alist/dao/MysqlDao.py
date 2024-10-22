@@ -121,7 +121,7 @@ class MysqlDao:
                 `download_path` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL,
                 `file_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
                 `file_path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
-                `file_size` int NULL DEFAULT NULL,
+                `file_size` bigint NULL DEFAULT NULL,
                 `status` tinyint(1) NULL DEFAULT 0,
                 `remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
                 PRIMARY KEY (`id`) USING BTREE
