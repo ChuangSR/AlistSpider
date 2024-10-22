@@ -46,15 +46,17 @@ class AlistDownloadSpider(scrapy.Spider):
             if bool(i["is_dir"]):
                 yield Util.get_json_request(self, path, "list_request")
             else:
+                file_name = Util.replace_name(name.split(".")[0])
                 if not Util.download_check(path):
                     print(f"{path} 拒绝下载！")
                     continue
                 if Util.file_exists(path):
                     print(f"{path} 文件已存在！")
+                    settings.dao.update_file_status(file_name, settings.config.get("download").get("table_name"))
                     continue
                 sign = i['sign']
                 item = AlistItem()
-                item["file_name"] = Util.replace_name(name.split(".")[0])
+                item["file_name"] = file_name
                 item["url_path"] = Util.get_path(settings.config.get("website").get("url"), urllib.parse.quote(path))
                 item["file_path"] = Util.replace_path(path)
                 item["file_type"] = name.split(".")[-1]
