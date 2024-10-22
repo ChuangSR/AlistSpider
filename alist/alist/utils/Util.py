@@ -132,7 +132,7 @@ class Util:
             "request_type": "download",
         }
         proxy = settings.config.get("spider").get("download_proxy")
-        if proxy:
+        if proxy and "http" in proxy:
             meta["proxy"] = proxy
 
         return meta
