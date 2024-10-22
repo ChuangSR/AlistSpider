@@ -33,6 +33,7 @@ PyDispatcher==2.0.7
 PyMySQL==1.1.0
 pyOpenSSL==24.1.0
 pypng==0.20220715.0
+PyYAML==6.0.2
 pyzbar==0.1.9
 qrcode==7.4.2
 queuelib==1.6.2
@@ -40,6 +41,7 @@ requests==2.31.0
 requests-file==2.0.0
 Scrapy==2.11.1
 service-identity==24.1.0
+setuptools==75.2.0
 six==1.16.0
 SQLAlchemy==2.0.29
 tldextract==5.1.1
