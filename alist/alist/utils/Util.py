@@ -1,5 +1,4 @@
 import os
-import random
 import re
 import time
 import urllib
@@ -8,9 +7,10 @@ from urllib import parse
 import scrapy
 
 from alist import settings
-
+from fake_useragent import UserAgent
 
 class Util:
+    ua = UserAgent(os=["windows"])
     """
         用于保证文件的名称的可存储性，替换异常字符
     """
@@ -211,7 +211,7 @@ class Util:
             'sec-fetch-dest': 'empty',
             'sec-fetch-mode': 'cors',
             'sec-fetch-site': 'same-origin',
-            'user-agent': random.choice(settings.USER_AGENT)
+            'user-agent': Util.ua.random
         }
 
     # 构建url的工具

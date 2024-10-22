@@ -24,8 +24,8 @@ class AlistDownloadSpider(scrapy.Spider):
             "alist.pipelines.AlistFilePipeline": 301,
             "alist.pipelines.AlistEndPipeline": 302
         },
-        "DOWNLOAD_DELAY": config_spider.get("download_delay_download")
-
+        "DOWNLOAD_DELAY": config_spider.get("download_delay_download"),
+        "FILES_STORE": config_spider.get("save_path"),
     }
 
     def start_requests(self, path="/") -> JsonRequest:

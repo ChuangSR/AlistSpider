@@ -29,10 +29,12 @@ class MysqlDao:
 
         # 需要爬取的路径
         path = config.get("spider").get("start_path")
+
         date = self.select_root_table(path)
-        if date and len(date) == 2 and date[0][0] and date[0][1]:
+        if date and len(date[0]) == 2 and date[0][0] and date[0][1]:
             self.spider_database = date[0][0]
             self.spider_dir = date[0][1]
+            self.cursor.execute(f"use {self.spider_database}")
         else:
             # 数据名称
             self.spider_database = config.get('mysql').get('database')
@@ -43,7 +45,7 @@ class MysqlDao:
             self.insert_root_table(self.spider_database, path, self.spider_dir)
             # 创建网站数据库
             self.cursor.execute(f"CREATE DATABASE IF NOT EXISTS {self.spider_database}")
-            self.cursor.execute(f"use {config.get('mysql').get('database')}")
+            self.cursor.execute(f"use {self.spider_database}")
             # 创建目录表格
             self._create_dir_table()
     #用于检查表格是否存在
