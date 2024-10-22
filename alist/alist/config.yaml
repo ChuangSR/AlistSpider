@@ -1,11 +1,11 @@
 #网站相关的配置
 website:
   #网站的首页，必填
-  url: 
+  url: www.asmrgay.com
   #获取文件目录的api，必填
-  list_api: 
+  list_api: https://www.asmrgay.com/
   #下载的api，必填
-  download_api: 
+  download_api: https://www.asmrgay.com/
   #目录的密码，可以是一个str或者dict
   #dict的key正则表达式，value为密码
   #可以设置一个default
@@ -22,6 +22,7 @@ spider:
   save_path: 
   #爬虫运行的域名，必填
   allowed_domains:
+    -asmrgay.com
   #爬虫下载的文件，后缀名 如：mp3，mp4
   #可以使用*表示全部文件
   #默认全部下载
@@ -47,7 +48,7 @@ spider:
   redirect:
     default: 1
   #爬虫的起始路径，默认从/开始
-  start_path: /2024.06.05 - 2024.06.18
+  start_path: /2024.06.05 - 2024.06.1
   #目录获取的深度，可以是一个int，或者dict
   #表示创建表格的深度
   #dict的key正则表达式，value为对应路径深度
@@ -72,10 +73,10 @@ download:
 #数据库相关的配置
 mysql:
   #数据库地址，必填
-  host: 
+  host: 127.0.0.1
   #用户名，必填
-  user: 
+  user: root
   #密码，必填
-  password: 
+  password: ZYS
   #运行端口，必填
-  port: 
+  port: 3306

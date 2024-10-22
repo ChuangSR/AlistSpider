@@ -21,7 +21,10 @@ def init():
 
     # 读取url，为创建数据库做准备
     url: str = config.get("website").get("url")
-    database: str = url.split("/")[2]
+    if "http://" not in url or "https://" not in url:
+        database:str = url.split("/")[0]
+    else:
+        database: str = url.split("/")[2]
 
     # 添加数据库名称到配置文件中
     config.get("mysql")["database"] = database.replace(".", "_")
@@ -41,7 +44,11 @@ def config_check(config: dict):
 
     if not config_website.get("url"):
         sys.exit("爬虫退出:website.url 缺失")
-    config_website["url"] = Util.url_builder(config_website.get("url"), 3)
+    if "http://" not in config_website.get("url") or "https://" not in config_website.get("url"):
+        config_website["url"] = Util.url_builder(config_website.get("url"),1)
+    else:
+        config_website["url"] = Util.url_builder(config_website.get("url"), 3)
+
     if not config_website.get("list_api"):
         sys.exit("爬虫退出:website.list_api 缺失")
     if not config_website.get("download_api"):

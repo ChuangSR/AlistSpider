@@ -7,43 +7,74 @@ from alist.items import AlistItem, AlistDirItem
 
 class MysqlDao:
     def __init__(self):
+        #加载配置文件
         config: dict = settings.config
         config_mysql: dict = config.get("mysql")
+        #创建数据库链接
         self.connect = pymysql.connect(host=config_mysql.get("host")
                                   , user=config_mysql.get("user")
                                   , passwd=config_mysql.get("password")
                                   , port=config_mysql.get("port")
                                   , charset='utf8mb4')
         self.cursor = self.connect.cursor()
-        self.cursor.execute(f"CREATE DATABASE IF NOT EXISTS {config.get('mysql').get('database')}")
-        self.cursor.execute(f"use {config.get('mysql').get('database')}")
-        self.connect.commit()
-        self.root_table = "root_table"
-        self._create_root_table(self.root_table)
+        self.root_database = "AlistSpider"
+        #爬虫总数据库的处理
+        self.cursor.execute(f"CREATE DATABASE IF NOT EXISTS {self.root_database}")
+        self.cursor.execute(f"use {self.root_database}")
+        #数据库表的处理
+        self.root_table = "t_root"
+        self._create_root_table()
 
+        #当前网站的数据库处理
+
+        # 需要爬取的路径
         path = config.get("spider").get("start_path")
-        path_code = hashlib.md5(path.encode("utf-8")).hexdigest()
-        self.dir_table = f"dir_table_{path_code}"
-        self._create_dir_table(self.dir_table)
-
-    def table_cheack(self, table_name):
+        date = self.select_root_table(path)
+        if date and len(date) == 2 and date[0][0] and date[0][1]:
+            self.spider_database = date[0][0]
+            self.spider_dir = date[0][1]
+        else:
+            # 数据名称
+            self.spider_database = config.get('mysql').get('database')
+            # 生成对应的数据表名称
+            path_code = hashlib.md5(path.encode("utf-8")).hexdigest()
+            self.spider_dir = f"dir_table_{path_code}"
+            # 将表格中插入数据
+            self.insert_root_table(self.spider_database, path, self.spider_dir)
+            # 创建网站数据库
+            self.cursor.execute(f"CREATE DATABASE IF NOT EXISTS {self.spider_database}")
+            self.cursor.execute(f"use {config.get('mysql').get('database')}")
+            # 创建目录表格
+            self._create_dir_table()
+    #用于检查表格是否存在
+    def table_cheack(self,database,table_name):
         sql = f"""
             select 
                 TABLE_NAME 
             from 
                 INFORMATION_SCHEMA.TABLES 
             where 
-                TABLE_SCHEMA="{settings.config.get('mysql').get('database')}" and TABLE_NAME="{table_name}"
+                TABLE_SCHEMA="{database}" and TABLE_NAME="{table_name}"
         """
         self.cursor.execute(sql)
         return len(self.cursor.fetchall()) == 1
 
-    def _create_root_table(self, table_name):
-        if self.table_cheack(table_name):
+    #创建程序的总表格
+    def _create_root_table(self):
+        if self.table_cheack(self.root_database, self.root_table):
             return
+        """
+            这个表格用于保存爬虫运行过的所有信息
+            id为一个索引
+            database表示数据库的名字，每一个database代表着一个网站
+            path当前脚本运行的路径（即需要爬取的网站路径）
+            table_name于路径对应的名称
+            status爬取路径的下载状态，为1表示完成
+        """
         sql = f"""
-            CREATE TABLE `{table_name}`  (
+            CREATE TABLE `{self.root_table}`  (
                 `id` int NOT NULL AUTO_INCREMENT,
+                `database_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
                 `path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
                 `table_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
                 `status` tinyint NULL DEFAULT 0,
@@ -52,9 +83,33 @@ class MysqlDao:
         """
         self.cursor.execute(sql)
         self.connect.commit()
+    def insert_root_table(self,database_name,path,table_name):
+        sql = f"""
+            insert into
+                {self.root_table}
+            (database_name,path,table_name)
+            values (
+                "{database_name}",
+                "{path}",
+                "{table_name}"
+            )
+        """
+        self.cursor.execute(sql)
+        self.connect.commit()
 
+    def select_root_table(self,path):
+        sql = f"""
+            select
+                database_name,table_name
+            from
+                {self.root_table}
+            where
+                path = "{path}"
+        """
+        self.cursor.execute(sql)
+        return self.cursor.fetchall()
     def _create_file_table(self, table_name):
-        if self.table_cheack(table_name):
+        if self.table_cheack(self.spider_database,table_name):
             return
         sql = f"""
             CREATE TABLE `{table_name}`  (
@@ -74,11 +129,11 @@ class MysqlDao:
         self.connect.commit()
 
     # 创建目录表
-    def _create_dir_table(self, table_name):
-        if self.table_cheack(table_name):
+    def _create_dir_table(self):
+        if self.table_cheack(self.spider_database,self.spider_dir):
             return
         sql = f"""
-            CREATE TABLE `{table_name}`  (
+            CREATE TABLE `{self.spider_dir}`  (
                 `id` int NOT NULL AUTO_INCREMENT,
                 `path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
                 `table_name` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
@@ -95,12 +150,12 @@ class MysqlDao:
         self.cursor.execute(sql)
         self.connect.commit()
 
-    def select_dir_table(self, table_name):
+    def select_dir_table(self,table_name):
         sql = f"""
             select 
                 id,path,table_name,subdirectory,dirs,files,status,size,remark
             from 
-                {self.dir_table}
+                {self.spider_dir}
             where 
                 table_name = "{table_name}"
         """
@@ -114,7 +169,7 @@ class MysqlDao:
             select 
                 id,path,table_name,subdirectory,dirs,files,need_files,status,size,remark
             from
-                {self.dir_table}
+                {self.spider_dir}
             where
                 status = 0
         """
@@ -126,7 +181,7 @@ class MysqlDao:
     def update_dir_table(self, dir):
         sql = f"""
                 update 
-                    {self.dir_table}
+                    {self.spider_dir}
                 set
                     files = {dir[5]},
                     need_files = {dir[6]}
@@ -140,7 +195,7 @@ class MysqlDao:
     def delete_dir_table(self, dir):
         sql = f"""
             delete from
-                {self.dir_table}
+                {self.spider_dir}
             where
                 id = {dir[0]}
         """
@@ -165,14 +220,14 @@ class MysqlDao:
 
         sql = f"""
             insert into
-                `{self.dir_table}`(path,table_name,subdirectory,dirs,files,size)
+                `{self.spider_dir}`(path,table_name,subdirectory,dirs,files,size)
             values
                 ("{path}","{table_name}",{subdirectory},{dirs},{files},{size})
         """
         self.cursor.execute(sql)
         self.connect.commit()
 
-        if self.table_cheack(table_name):
+        if self.table_cheack(self.spider_database,table_name):
             return
 
         self._create_file_table(table_name)
@@ -181,7 +236,7 @@ class MysqlDao:
     def update_table_status(self, id):
         sql = f"""
             update 
-                {self.dir_table}
+                {self.spider_dir}
             set
                 status = 1
             where
