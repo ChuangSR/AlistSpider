@@ -22,6 +22,7 @@ dao: MysqlDao = None
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
 
+DOWNLOAD_MAXSIZE = 0
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
 
