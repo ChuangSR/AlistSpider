@@ -64,6 +64,8 @@ class AlistDownloadSpider(scrapy.Spider):
                     dao = settings.dao
                     table_name = settings.config.get("download").get("table_name")
                     dao.insert_file_data(item,table_name)
+                    dao.update_file_status(item["file_name"], table_name)
+                    continue
                 yield self._redirect(item, path)
 
     def redirect_parse(self, response):
